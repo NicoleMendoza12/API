@@ -1,4 +1,4 @@
-using AuthApi.Interfaces;
+﻿using AuthApi.Interfaces;
 using AuthApi.Repositorios;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -8,7 +8,7 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Configuraci�n EF Core
+// Configuración EF Core
 builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
 {
     var connectionString = builder.Configuration.GetConnectionString("Conn");
@@ -16,7 +16,7 @@ builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
     options.EnableSensitiveDataLogging();
     options.EnableDetailedErrors();
 });
-// Inyecci�n
+// Inyección
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IAuthService, AuthRepository>();
 
@@ -38,13 +38,22 @@ builder.Services.AddAuthentication("Bearer")
     });
 
 builder.Services.AddControllers();
+// 💡 Agrega el servicio de CORS y la política aquí
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAllOrigins",
+        builder => builder.AllowAnyOrigin()
+                          .AllowAnyHeader()
+                          .AllowAnyMethod());
+});
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "AuthService API", Version = "v1" });
 
-    // Configuraci�n JWT
+    // Configuración JWT
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "Ingrese 'Bearer' seguido de un espacio y su token JWT",
@@ -64,8 +73,11 @@ builder.Services.AddSwaggerGen(c =>
                     Type = ReferenceType.SecurityScheme,
                     Id = "Bearer"
                 },
-                Array.Empty<string>()
-            }
+                Scheme ="oauth2",
+                Name = "Bearer",
+                In = ParameterLocation.Header
+            },
+            new string[]{}
         }
     });
 });
@@ -79,6 +91,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// 💡 Agrega el middleware de CORS aquí, antes de UseAuthorization()
+app.UseCors("AllowAllOrigins");
 
 app.UseAuthorization();
 

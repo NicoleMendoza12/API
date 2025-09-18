@@ -2,6 +2,7 @@
 using AuthApi.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
+
 namespace AuthApi.Controllers
 {
     [ApiController]
@@ -16,7 +17,7 @@ namespace AuthApi.Controllers
         }
 
         [HttpPost("registrar")]
-        public async Task<IActionResult> Registrar([FromBody] UsuarioRegistroDto dto)
+        public async Task<IActionResult> Registrar([FromBody] UsuarioRegistroDTO dto)
         {
             var result = await _authService.RegistrarAsync(dto);
             return Ok(result);
